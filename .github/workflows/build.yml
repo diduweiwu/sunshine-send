@@ -117,3 +117,19 @@ jobs:
           files: ${{ steps.rename_apks.outputs.apk_dir }}/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update HISTORY.md
+        run: |
+          awk '
+            /^## / && !found { found=1; next }
+            /^## / && found { found=0 }
+            !found { print }
+          ' HISTORY.md > HISTORY.tmp && mv HISTORY.tmp HISTORY.md
+
+      - name: Commit and push HISTORY.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add HISTORY.md
+          git diff --cached --quiet || git commit -m "chore: update HISTORY.md after ${{ steps.version.outputs.tag }} release"
+          git push origin HEAD:main
