@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>阳光快传</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #E94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+
+        .upload-zone {
+            border: 2px dashed #3a3a5a;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(35, 39, 53, 0.5);
+            margin-bottom: 24px;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #E94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .upload-zone h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .upload-zone p {
+            color: #b0b0b0;
+            font-size: 13px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-item {
+            background: rgba(35, 39, 53, 0.8);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            word-break: break-all;
+            flex: 1;
+            margin-right: 12px;
+        }
+
+        .file-size {
+            color: #b0b0b0;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #E94560, #ff6b6b);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #b0b0b0;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .file-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .status-uploading {
+            color: #E94560;
+        }
+
+        .status-success {
+            color: #4CAF50;
+        }
+
+        .status-error {
+            color: #ff5252;
+        }
+
+        .status-installing {
+            color: #FF9800;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #b0b0b0;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .upload-zone {
+                padding: 30px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>阳光快传</h1>
+            <p>选择或拖拽文件到下方区域上传</p>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+            <div class="upload-icon">📁</div>
+            <h3>点击或拖拽文件到此处</h3>
+            <p>支持任意格式，APK 文件将自动安装</p>
+            <input type="file" id="fileInput" multiple>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div class="empty-state" id="emptyState">
+            <div class="icon">📭</div>
+            <p>暂无上传记录</p>
+        </div>
+    </div>
+
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const emptyState = document.getElementById('emptyState');
+
+        let uploadItems = [];
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            fileInput.value = '';
+        });
+
+        function handleFiles(files) {
+            for (const file of files) {
+                uploadFile(file);
+            }
+        }
+
+        function uploadFile(file) {
+            const itemId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const item = {
+                id: itemId,
+                name: file.name,
+                size: file.size,
+                progress: 0,
+                status: 'uploading'
+            };
+            uploadItems.unshift(item);
+            renderFileList();
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const progress = Math.round((e.loaded * 100) / e.total);
+                    item.progress = progress;
+                    updateProgress(itemId, progress);
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    try {
+                        const resp = JSON.parse(xhr.responseText);
+                        if (resp.success) {
+                            if (file.name.toLowerCase().endsWith('.apk')) {
+                                item.status = 'installing';
+                                renderFileList();
+                            } else {
+                                item.status = 'success';
+                                item.progress = 100;
+                                renderFileList();
+                            }
+                        } else {
+                            item.status = 'error';
+                            renderFileList();
+                        }
+                    } catch (e) {
+                        item.status = 'success';
+                        item.progress = 100;
+                        renderFileList();
+                    }
+                } else {
+                    item.status = 'error';
+                    renderFileList();
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                item.status = 'error';
+                renderFileList();
+            });
+
+            const formData = new FormData();
+            formData.append('filename', file.name);
+            formData.append('file', file);
+
+            xhr.open('POST', '/api/upload');
+            xhr.send(formData);
+        }
+
+        function updateProgress(itemId, progress) {
+            const fill = document.querySelector(`[data-id="${itemId}"] .progress-fill`);
+            const text = document.querySelector(`[data-id="${itemId}"] .progress-text`);
+            if (fill) fill.style.width = progress + '%';
+            if (text) text.textContent = progress + '%';
+        }
+
+        function renderFileList() {
+            if (uploadItems.length === 0) {
+                emptyState.style.display = 'block';
+                fileList.innerHTML = '';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            fileList.innerHTML = uploadItems.map(item => {
+                const sizeStr = formatSize(item.size);
+                let statusHtml = '';
+
+                switch (item.status) {
+                    case 'uploading':
+                        statusHtml = `<span class="file-status status-uploading">上传中</span>`;
+                        break;
+                    case 'success':
+                        statusHtml = `<span class="file-status status-success">已完成</span>`;
+                        break;
+                    case 'error':
+                        statusHtml = `<span class="file-status status-error">失败</span>`;
+                        break;
+                    case 'installing':
+                        statusHtml = `<span class="file-status status-installing">安装中</span>`;
+                        break;
+                }
+
+                const progressDisplay = item.status === 'uploading' ? 'flex' : 'none';
+
+                return `
+                    <div class="file-item" data-id="${item.id}">
+                        <div class="file-item-header">
+                            <span class="file-name">${escapeHtml(item.name)}</span>
+                            <span class="file-size">${sizeStr}</span>
+                        </div>
+                        <div class="progress-container" style="display: ${progressDisplay}">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${item.progress}%"></div>
+                            </div>
+                            <span class="progress-text">${item.progress}%</span>
+                        </div>
+                        ${statusHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

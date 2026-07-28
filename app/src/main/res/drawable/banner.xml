@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#1a1a2e"
+                android:endColor="#16213e"
+                android:angle="135" />
+        </shape>
+    </item>
+    <item
+        android:gravity="center"
+        android:width="200dp"
+        android:height="80dp">
+        <vector
+            android:width="200dp"
+            android:height="80dp"
+            android:viewportWidth="200"
+            android:viewportHeight="80">
+            <path
+                android:fillColor="#E94560"
+                android:pathData="M40,20 L40,40 L60,40 A20,20 0 1,1 40,20 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M70,30 L130,30 L130,34 L70,34 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M70,38 L120,38 L120,42 L70,42 Z" />
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M70,46 L110,46 L110,50 L70,50 Z" />
+            <path
+                android:fillColor="#B0B0B0"
+                android:pathData="M70,58 L150,58 L150,62 L70,62 Z" />
+        </vector>
+    </item>
+</layer-list>

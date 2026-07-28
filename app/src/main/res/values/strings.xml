@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">阳光快传</string>
+    <string name="server_running">服务已启动</string>
+    <string name="server_stopped">服务已停止</string>
+    <string name="scan_qr_to_upload">扫描二维码上传文件</string>
+    <string name="file_list">文件列表</string>
+    <string name="no_files">暂无文件</string>
+    <string name="uploading">上传中...</string>
+    <string name="upload_success">上传成功</string>
+    <string name="upload_failed">上传失败</string>
+    <string name="installing">正在安装...</string>
+    <string name="install_success">安装成功</string>
+    <string name="install_failed">安装失败</string>
+</resources>
