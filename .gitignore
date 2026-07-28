@@ -111,3 +111,4 @@ sdk.dir
 
 # Artifacts
 .artifacts/
+build.sh

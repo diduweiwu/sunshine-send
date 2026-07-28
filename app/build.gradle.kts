@@ -29,9 +29,9 @@ android {
                 keyAlias = props["keyAlias"] as String
                 keyPassword = props["keyPassword"] as String
             } else {
-                storeFile = file(System.getProperty("user.home") + "/.android/release.keystore")
+                storeFile = file(System.getProperty("user.home") + "/.android/sunshine-send.release.keystore")
                 storePassword = System.getenv("STORE_PASSWORD") ?: "android"
-                keyAlias = System.getenv("KEY_ALIAS") ?: "sunshinesend"
+                keyAlias = System.getenv("KEY_ALIAS") ?: "sunshine-send"
                 keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
             }
         }
