@@ -14,7 +14,7 @@ android {
         applicationId = "com.sunshinesend.app"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
+        versionCode = 1000000
         versionName = "1.0.0"
     }
 

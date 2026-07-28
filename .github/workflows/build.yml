@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag without v prefix (e.g. 1.0.0)'
+        description: 'Version tag without v prefix (e.g. 1.1.0)'
         required: true
 
 permissions:
@@ -44,20 +44,60 @@ jobs:
           keyPassword=${{ secrets.KEYSTORE_PASSWORD }}
           EOF
 
+      - name: Get version tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="v${{ github.event.inputs.version }}"
+          else
+            TAG="${{ github.ref_name }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Update versionCode in build.gradle.kts
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+          BUILD=$(echo $VERSION | cut -d. -f4)
+          BUILD=${BUILD:-0}
+          VERSION_CODE=$((MAJOR * 1000000 + MINOR * 10000 + PATCH * 100 + BUILD))
+          sed -i "s/versionCode = .*/versionCode = $VERSION_CODE/" app/build.gradle.kts
+          echo "Updated versionCode to $VERSION_CODE"
+
+      - name: Update versionName in build.gradle.kts
+        run: |
+          sed -i 's/versionName = ".*"/versionName = "${{ steps.version.outputs.version }}"/' app/build.gradle.kts
+
       - name: Build release APKs
         run: ./gradlew assembleRelease
 
-      - name: Find all APKs
-        id: find_apks
+      - name: Rename APKs with version
+        id: rename_apks
         run: |
-          APKS=$(find app/build/outputs/apk/release -name '*.apk' -type f | tr '\n' ',')
-          if [ -z "$APKS" ]; then
-            echo "ERROR: No APKs found!" >&2
-            exit 1
-          fi
-          echo "apk_paths=${APKS%,}" >> "$GITHUB_OUTPUT"
-          echo "Found APKs:"
-          echo "$APKS"
+          TAG="${{ steps.version.outputs.tag }}"
+          APK_DIR="app/build/outputs/apk/release"
+          DEST_DIR="apks"
+          mkdir -p $DEST_DIR
+          
+          for APK in $APK_DIR/*.apk; do
+            BASENAME=$(basename "$APK" .apk)
+            ARCH=$(echo "$BASENAME" | sed 's/app-\(.*\)-release/\1/')
+            
+            if [ "$ARCH" = "universal" ]; then
+              NEW_NAME="SunshineSend-${TAG}-universal.apk"
+            else
+              NEW_NAME="SunshineSend-${TAG}-${ARCH}.apk"
+            fi
+            
+            cp "$APK" "$DEST_DIR/$NEW_NAME"
+            echo "Renamed: $NEW_NAME"
+          done
+          
+          echo "apk_dir=$DEST_DIR" >> "$GITHUB_OUTPUT"
+          ls -la $DEST_DIR/
 
       - name: Get changelog
         id: get_changelog
@@ -68,23 +108,12 @@ jobs:
           echo "$output" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
-      - name: Get version tag
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=v${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
-            echo "ref_name=v${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-            echo "ref_name=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Create Release and Upload APKs
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: Release ${{ steps.version.outputs.tag }}
           body: ${{ steps.get_changelog.outputs.changelog }}
-          files: ${{ steps.find_apks.outputs.apk_paths }}
+          files: ${{ steps.rename_apks.outputs.apk_dir }}/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

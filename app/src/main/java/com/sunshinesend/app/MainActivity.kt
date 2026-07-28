@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
     private lateinit var qrCodeImage: ImageView
     private lateinit var urlText: TextView
     private lateinit var fileListTitle: TextView
+    private lateinit var btnCheckUpdate: TextView
     private lateinit var btnDonate: TextView
     private lateinit var fileRecyclerView: RecyclerView
     private lateinit var emptyView: TextView
@@ -77,6 +78,7 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
         qrCodeImage = findViewById(R.id.qrCodeImage)
         urlText = findViewById(R.id.urlText)
         fileListTitle = findViewById(R.id.fileListTitle)
+        btnCheckUpdate = findViewById(R.id.btnCheckUpdate)
         btnDonate = findViewById(R.id.btnDonate)
         fileRecyclerView = findViewById(R.id.fileRecyclerView)
         emptyView = findViewById(R.id.emptyView)
@@ -84,6 +86,22 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
         fileAdapter = FileAdapter(this)
         fileRecyclerView.layoutManager = LinearLayoutManager(this)
         fileRecyclerView.adapter = fileAdapter
+
+        btnCheckUpdate.setOnClickListener { checkForUpdate() }
+        btnCheckUpdate.setOnFocusChangeListener { _, hasFocus ->
+            btnCheckUpdate.animate().cancel()
+            if (hasFocus) {
+                val animator = android.animation.ValueAnimator.ofArgb(0xFF00BCD4.toInt(), 0xFFFFFFFF.toInt())
+                animator.duration = 800
+                animator.repeatCount = android.animation.ValueAnimator.INFINITE
+                animator.repeatMode = android.animation.ValueAnimator.REVERSE
+                animator.addUpdateListener { btnCheckUpdate.setTextColor(it.animatedValue as Int) }
+                animator.start()
+                btnCheckUpdate.setTag(animator)
+            } else {
+                btnCheckUpdate.setTextColor(0xFF00BCD4.toInt())
+            }
+        }
 
         btnDonate.setOnClickListener { showDonateDialog() }
         btnDonate.setOnFocusChangeListener { _, hasFocus ->
@@ -121,6 +139,48 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
             android.view.WindowManager.LayoutParams.WRAP_CONTENT
         )
         dialogView.requestFocus()
+    }
+
+    private fun checkForUpdate() {
+        Toast.makeText(this, "正在检查更新...", Toast.LENGTH_SHORT).show()
+        UpdateManager.checkForUpdate(this, object : UpdateManager.UpdateCallback {
+            override fun onUpdateAvailable(updateInfo: UpdateInfo) {
+                showUpdateDialog(updateInfo)
+            }
+
+            override fun onNoUpdate() {
+                Toast.makeText(this@MainActivity, "已是最新版本", Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onError(error: String) {
+                Toast.makeText(this@MainActivity, "检查更新失败: $error", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun showUpdateDialog(updateInfo: UpdateInfo) {
+        val message = buildString {
+            appendLine("新版本: ${updateInfo.versionName}")
+            appendLine()
+            if (updateInfo.releaseNote.isNotBlank()) {
+                appendLine("更新内容:")
+                append(updateInfo.releaseNote)
+                appendLine()
+            }
+            append("是否下载更新?")
+        }
+
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("发现新版本")
+            .setMessage(message)
+            .setPositiveButton("下载") { _, _ ->
+                Toast.makeText(this, "开始下载...", Toast.LENGTH_SHORT).show()
+                UpdateManager.downloadAndInstall(this, updateInfo)
+            }
+            .setNegativeButton("取消", null)
+            .setCancelable(true)
+            .create()
+        dialog.show()
     }
 
     private fun loadSavedFiles() {

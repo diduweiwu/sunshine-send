@@ -3,6 +3,9 @@
     <external-files-path
         name="uploads"
         path="Uploads/" />
+    <external-files-path
+        name="downloads"
+        path="Download/" />
     <external-path
         name="external"
         path="." />
