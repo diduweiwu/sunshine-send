@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# 提取 HISTORY.md 中所有未发布的变更日志
-# 格式: ## 版本号 -> ### 章节 -> 内容列表
-# 从文件开头读取，直到遇到空行分隔的下一个版本或文件结束
+# 提取 HISTORY.md 中第一个版本（最新）的变更日志
+# 遇到第二个 ## 标题时停止
 
 in_section=false
+found_first=false
 
 while IFS= read -r line; do
     # 跳过空行
@@ -12,9 +12,12 @@ while IFS= read -r line; do
         continue
     fi
 
-    # 遇到 ## 版本标题，继续（跳过标题行本身）
+    # 遇到第二个 ## 版本标题，结束
     if [[ "$line" == "## "* ]]; then
-        in_section=false
+        if $found_first; then
+            break
+        fi
+        found_first=true
         continue
     fi
 
