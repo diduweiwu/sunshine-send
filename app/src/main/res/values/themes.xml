@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Theme.SunshineSend" parent="Theme.MaterialComponents.NoActionBar">
         <item name="android:windowBackground">@color/background</item>
         <item name="android:colorPrimary">@color/primary</item>

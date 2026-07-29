@@ -14,8 +14,8 @@ android {
         applicationId = "com.sunshinesend.app"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1000000
-        versionName = "1.0.0"
+        versionCode = 1000002
+        versionName = "1.0.2"
     }
 
     signingConfigs {
@@ -29,7 +29,8 @@ android {
                 keyAlias = props["keyAlias"] as String
                 keyPassword = props["keyPassword"] as String
             } else {
-                storeFile = file(System.getProperty("user.home") + "/.android/sunshine-send.release.keystore")
+                storeFile =
+                    file(System.getProperty("user.home") + "/.android/sunshine-send.release.keystore")
                 storePassword = System.getenv("STORE_PASSWORD") ?: "android"
                 keyAlias = System.getenv("KEY_ALIAS") ?: "sunshine-send"
                 keyPassword = System.getenv("KEY_PASSWORD") ?: "android"

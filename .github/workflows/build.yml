@@ -85,13 +85,13 @@ jobs:
           for APK in $APK_DIR/*.apk; do
             BASENAME=$(basename "$APK" .apk)
             ARCH=$(echo "$BASENAME" | sed 's/app-\(.*\)-release/\1/')
-            
+          
             if [ "$ARCH" = "universal" ]; then
               NEW_NAME="SunshineSend-${TAG}-universal.apk"
             else
               NEW_NAME="SunshineSend-${TAG}-${ARCH}.apk"
             fi
-            
+          
             cp "$APK" "$DEST_DIR/$NEW_NAME"
             echo "Renamed: $NEW_NAME"
           done

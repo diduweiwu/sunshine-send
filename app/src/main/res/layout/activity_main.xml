@@ -4,20 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    android:padding="32dp">
+    android:padding="24dp"
+    android:descendantFocusability="beforeDescendants"
+    android:focusableInTouchMode="true">
 
     <!-- Left Panel: QR Code -->
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/leftPanel"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="12dp"
         android:background="@color/card_bg"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:focusable="true"
-        android:nextFocusRight="@id/fileRecyclerView"
+        android:descendantFocusability="blocksDescendants"
+        android:focusable="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/rightPanel"
         app:layout_constraintHorizontal_weight="4"
@@ -26,41 +25,68 @@
 
         <ImageView
             android:id="@+id/qrCodeImage"
-            android:layout_width="280dp"
-            android:layout_height="280dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="16dp"
             android:contentDescription="@string/scan_qr_to_upload"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitCenter"
+            android:focusable="false"
+            app:layout_constraintBottom_toTopOf="@id/urlText"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            app:layout_constraintWidth_max="280dp"
+            app:layout_constraintHeight_max="280dp" />
 
         <TextView
             android:id="@+id/urlText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="4dp"
+            android:ellipsize="middle"
             android:gravity="center"
+            android:maxLines="1"
             android:textColor="@color/text_primary"
-            android:textSize="14sp" />
+            android:textSize="13sp"
+            android:focusable="false"
+            app:layout_constraintBottom_toTopOf="@id/qrHintText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/qrCodeImage" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/qrHintText"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:gravity="center"
             android:text="@string/scan_qr_to_upload"
             android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:textSize="13sp"
+            android:focusable="false"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/urlText" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Right Panel: File List -->
     <LinearLayout
         android:id="@+id/rightPanel"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="12dp"
         android:background="@color/card_bg"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:nextFocusLeft="@id/leftPanel"
+        android:padding="16dp"
+        android:descendantFocusability="afterDescendants"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="6"
@@ -80,34 +106,44 @@
                 android:layout_weight="1"
                 android:text="@string/file_list"
                 android:textColor="@color/text_primary"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:focusable="false" />
+
+            <TextView
+                android:id="@+id/tvVersionName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:focusable="false" />
 
             <TextView
                 android:id="@+id/btnCheckUpdate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="6dp"
                 android:padding="4dp"
                 android:text="检查更新"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textColor="#00BCD4"
                 android:background="@android:color/transparent"
                 android:focusable="true"
                 android:clickable="true"
-                android:nextFocusLeft="@id/fileListTitle"
+                android:nextFocusLeft="@id/tvVersionName"
                 android:nextFocusRight="@id/btnDonate"
                 android:nextFocusDown="@id/fileRecyclerView"
-                android:nextFocusUp="@id/fileRecyclerView" />
+                android:nextFocusUp="@id/btnDonate" />
 
             <TextView
                 android:id="@+id/btnDonate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="8dp"
                 android:padding="4dp"
                 android:text="¥ 打赏"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textColor="#FFD600"
                 android:background="@android:color/transparent"
                 android:focusable="true"
@@ -115,36 +151,42 @@
                 android:nextFocusLeft="@id/btnCheckUpdate"
                 android:nextFocusRight="@id/fileListTitle"
                 android:nextFocusDown="@id/fileRecyclerView"
-                android:nextFocusUp="@id/fileRecyclerView" />
+                android:nextFocusUp="@id/btnCheckUpdate" />
 
         </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:background="@color/progress_bg" />
 
-        <TextView
-            android:id="@+id/emptyView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:padding="32dp"
-            android:text="@string/no_files"
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/fileRecyclerView"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:descendantFocusability="afterDescendants"
-            android:nextFocusLeft="@id/leftPanel"
-            android:nextFocusUp="@id/btnDonate"
-            android:nextFocusDown="@id/btnDonate" />
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/emptyView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:padding="24dp"
+                android:text="@string/no_files"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:focusable="false" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/fileRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:descendantFocusability="afterDescendants"
+                android:nextFocusUp="@id/btnDonate"
+                android:nextFocusDown="@id/btnDonate" />
+
+        </FrameLayout>
 
     </LinearLayout>
 

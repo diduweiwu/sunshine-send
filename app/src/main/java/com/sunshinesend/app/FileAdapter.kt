@@ -28,7 +28,8 @@ interface FileItemCallback {
     fun onDelete(item: FileItem)
 }
 
-class FileAdapter(private val callback: FileItemCallback) : RecyclerView.Adapter<FileAdapter.ViewHolder>() {
+class FileAdapter(private val callback: FileItemCallback) :
+    RecyclerView.Adapter<FileAdapter.ViewHolder>() {
 
     private val items = mutableListOf<FileItem>()
 
@@ -117,6 +118,7 @@ class FileAdapter(private val callback: FileItemCallback) : RecyclerView.Adapter
                     fileStatus.setTextColor(0xFFE94560.toInt())
                     btnOpen.visibility = View.GONE
                 }
+
                 FileStatus.COMPLETED -> {
                     progressBar.visibility = View.GONE
                     progressText.visibility = View.GONE
@@ -124,6 +126,7 @@ class FileAdapter(private val callback: FileItemCallback) : RecyclerView.Adapter
                     fileStatus.setTextColor(0xFF4CAF50.toInt())
                     btnOpen.visibility = View.VISIBLE
                 }
+
                 FileStatus.INSTALLING -> {
                     progressBar.visibility = View.VISIBLE
                     progressText.visibility = View.VISIBLE
@@ -133,6 +136,7 @@ class FileAdapter(private val callback: FileItemCallback) : RecyclerView.Adapter
                     fileStatus.setTextColor(0xFFE94560.toInt())
                     btnOpen.visibility = View.GONE
                 }
+
                 FileStatus.ERROR -> {
                     progressBar.visibility = View.GONE
                     progressText.visibility = View.GONE
@@ -161,7 +165,8 @@ class FileAdapter(private val callback: FileItemCallback) : RecyclerView.Adapter
                 (view.getTag() as? android.animation.ObjectAnimator)?.cancel()
                 if (hasFocus) {
                     view.alpha = 1f
-                    val animator = android.animation.ObjectAnimator.ofFloat(view, "alpha", 1f, 0.4f, 1f)
+                    val animator =
+                        android.animation.ObjectAnimator.ofFloat(view, "alpha", 1f, 0.4f, 1f)
                     animator.duration = 1000
                     animator.repeatCount = android.animation.ObjectAnimator.INFINITE
                     animator.start()

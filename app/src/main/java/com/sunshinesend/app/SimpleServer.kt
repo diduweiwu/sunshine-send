@@ -6,8 +6,6 @@ import android.os.Looper
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD
 import java.io.File
-import java.io.FileOutputStream
-import java.net.URLDecoder
 import java.util.concurrent.ConcurrentHashMap
 
 class SimpleServer(
@@ -108,7 +106,12 @@ class SimpleServer(
 
     private fun handleFileList(): Response {
         val files = uploadDir.listFiles()?.filter { !it.name.contains(".tmp_") }?.map { file ->
-            """{"name":"${file.name.replace("\"", "\\\"")}","size":${file.length()},"time":${file.lastModified()}}"""
+            """{"name":"${
+                file.name.replace(
+                    "\"",
+                    "\\\""
+                )
+            }","size":${file.length()},"time":${file.lastModified()}}"""
         } ?: emptyList()
 
         val json = "[${files.joinToString(",")}]"
