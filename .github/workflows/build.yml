@@ -86,7 +86,8 @@ jobs:
           
           for APK in $APK_DIR/*.apk; do
             BASENAME=$(basename "$APK" .apk)
-            ARCH=$(echo "$BASENAME" | sed 's/.*-\(.*\)-release/\1/')
+            # 使用更精确的正则提取架构名，支持 arm64-v8a 等带连字符的架构名
+            ARCH=$(echo "$BASENAME" | sed -E 's/.*-([a-zA-Z0-9_-]+)-release$/\1/')
 
             if [ "$ARCH" = "universal" ]; then
               NEW_NAME="sunshinesend-${TAG}-universal.apk"

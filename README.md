@@ -1,5 +1,7 @@
 # 阳光快传 (SunshineSend)
 
+![Banner](screenshots/banner.webp)
+
 一款简洁高效的 Android TV 文件传输工具，让您通过局域网快速将手机或电脑上的文件传送到智能电视。
 
 ## 项目背景
@@ -80,6 +82,8 @@ sunshinesend/
 │   │       └── raw/index.html          # Web 上传页面
 │   └── build.gradle.kts
 ├── screenshots/                         # 应用截图
+│   ├── banner.webp                      # 应用横幅
+│   ├── logo.webp                        # 应用图标
 │   ├── alipay.png                       # 支付宝收款码
 │   ├── wechat.png                       # 微信收款码
 │   ├── 1.png                            # 主界面截图
