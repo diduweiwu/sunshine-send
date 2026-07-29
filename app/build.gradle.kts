@@ -77,7 +77,7 @@ android {
         outputs.all {
             val output = this as com.android.build.gradle.api.ApkVariantOutput
             output.outputFileName = output.outputFile.name.replace(
-                "app", "${rootProject.name}-${variant.versionName}"
+                "app", "${rootProject.name.lowercase().replace(" ", "-")}-${variant.versionName}"
             )
         }
     }
