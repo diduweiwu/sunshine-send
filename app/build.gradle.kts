@@ -71,6 +71,16 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            val output = this as com.android.build.gradle.api.ApkVariantOutput
+            output.outputFileName = output.outputFile.name.replace(
+                "app", "${rootProject.name}-${variant.versionName}"
+            )
+        }
+    }
 }
 
 dependencies {
