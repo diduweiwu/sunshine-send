@@ -17,8 +17,9 @@
         android:clickable="true">
 
         <ImageView
-            android:layout_width="280dp"
-            android:layout_height="280dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
             android:src="@drawable/alipay"
             android:scaleType="fitCenter"
             android:contentDescription="支付宝" />
@@ -44,8 +45,9 @@
         android:clickable="true">
 
         <ImageView
-            android:layout_width="280dp"
-            android:layout_height="280dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
             android:src="@drawable/wechat"
             android:scaleType="fitCenter"
             android:contentDescription="微信" />

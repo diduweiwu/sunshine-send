@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
             .setTitle("需要权限")
             .setMessage("安装应用需要开启\"允许安装未知来源应用\"权限，请在设置中开启。")
             .setPositiveButton("去设置") { _, _ ->
-                startActivity(UpdateManager.getUpdatePermissionIntent())
+                startActivity(UpdateManager.getUpdatePermissionIntent(this))
             }
             .setNegativeButton("取消", null)
             .setCancelable(true)
@@ -448,21 +448,21 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
             val file = item.file
             if (file != null && file.exists()) {
                 val deleted = file.delete()
-                if (deleted) {
-                    fileAdapter.removeItem(item.name)
-                    savedFiles.removeAll { it.name == item.name }
-                    saveFiles()
-                    updateTitle()
-                    Toast.makeText(this, "已删除: ${item.name}", Toast.LENGTH_SHORT).show()
-                    if (fileAdapter.getItems().isEmpty()) {
-                        emptyView.visibility = android.view.View.VISIBLE
-                        fileRecyclerView.visibility = android.view.View.GONE
-                        btnDonate.requestFocus()
-                        updateFocusChain()
-                    }
-                } else {
+                if (!deleted) {
                     Toast.makeText(this, "删除失败", Toast.LENGTH_SHORT).show()
+                    return@post
                 }
+            }
+            fileAdapter.removeItem(item.name)
+            savedFiles.removeAll { it.name == item.name }
+            saveFiles()
+            updateTitle()
+            Toast.makeText(this, "已删除: ${item.name}", Toast.LENGTH_SHORT).show()
+            if (fileAdapter.getItems().isEmpty()) {
+                emptyView.visibility = android.view.View.VISIBLE
+                fileRecyclerView.visibility = android.view.View.GONE
+                btnDonate.requestFocus()
+                updateFocusChain()
             }
         }
     }

@@ -225,6 +225,13 @@
 
     let uploadItems = [];
 
+    document.addEventListener('paste', (e) => {
+        const files = e.clipboardData?.files;
+        if (files && files.length > 0) {
+            handleFiles(files);
+        }
+    });
+
     uploadZone.addEventListener('click', () => fileInput.click());
 
     uploadZone.addEventListener('dragover', (e) => {
