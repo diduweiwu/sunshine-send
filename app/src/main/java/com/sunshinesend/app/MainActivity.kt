@@ -569,6 +569,12 @@ class MainActivity : AppCompatActivity(), SimpleServer.ServerListener, FileItemC
         }
     }
 
+    override fun onUploadCancelled(fileName: String) {
+        handler.post {
+            fileAdapter.setCancelled(fileName)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         server?.stop()

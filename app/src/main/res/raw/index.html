@@ -166,8 +166,29 @@
             color: #ff5252;
         }
 
+        .status-cancelled {
+            color: #b0b0b0;
+        }
+
         .status-installing {
             color: #FF9800;
+        }
+
+        .btn-cancel {
+            background: rgba(233, 69, 96, 0.2);
+            color: #E94560;
+            border: 1px solid #E94560;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 10px;
+        }
+
+        .btn-cancel:hover {
+            background: #E94560;
+            color: #fff;
         }
 
         .empty-state {
@@ -262,17 +283,17 @@
 
     function uploadFile(file) {
         const itemId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const xhr = new XMLHttpRequest();
         const item = {
             id: itemId,
             name: file.name,
             size: file.size,
             progress: 0,
-            status: 'uploading'
+            status: 'uploading',
+            xhr: xhr
         };
         uploadItems.unshift(item);
         renderFileList();
-
-        const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener('progress', (e) => {
             if (e.lengthComputable) {
@@ -319,7 +340,7 @@
         formData.append('filename', file.name);
         formData.append('file', file);
 
-        xhr.open('POST', '/api/upload');
+        xhr.open('POST', '/api/upload?filename=' + encodeURIComponent(file.name));
         xhr.send(formData);
     }
 
@@ -328,6 +349,18 @@
         const text = document.querySelector(`[data-id="${itemId}"] .progress-text`);
         if (fill) fill.style.width = progress + '%';
         if (text) text.textContent = progress + '%';
+    }
+
+    function cancelUpload(itemId) {
+        const index = uploadItems.findIndex(i => i.id === itemId);
+        if (index >= 0) {
+            const item = uploadItems[index];
+            if (item.xhr && item.status === 'uploading') {
+                item.xhr.abort();
+                item.status = 'cancelled';
+                renderFileList();
+            }
+        }
     }
 
     function renderFileList() {
@@ -344,13 +377,21 @@
 
             switch (item.status) {
                 case 'uploading':
-                    statusHtml = `<span class="file-status status-uploading">上传中</span>`;
+                    statusHtml = `
+                        <div style="display: flex; align-items: center;">
+                            <span class="file-status status-uploading">上传中</span>
+                            <button class="btn-cancel" onclick="cancelUpload('${item.id}')">取消</button>
+                        </div>
+                    `;
                     break;
                 case 'success':
                     statusHtml = `<span class="file-status status-success">已完成</span>`;
                     break;
                 case 'error':
                     statusHtml = `<span class="file-status status-error">失败</span>`;
+                    break;
+                case 'cancelled':
+                    statusHtml = `<span class="file-status status-cancelled">已取消</span>`;
                     break;
                 case 'installing':
                     statusHtml = `<span class="file-status status-installing">安装中</span>`;

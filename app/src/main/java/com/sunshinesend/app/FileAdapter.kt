@@ -20,7 +20,8 @@ enum class FileStatus {
     UPLOADING,
     COMPLETED,
     ERROR,
-    INSTALLING
+    INSTALLING,
+    CANCELLED
 }
 
 interface FileItemCallback {
@@ -77,6 +78,14 @@ class FileAdapter(private val callback: FileItemCallback) :
         val index = items.indexOfFirst { it.name == name }
         if (index >= 0) {
             items[index].status = FileStatus.ERROR
+            notifyItemChanged(index)
+        }
+    }
+
+    fun setCancelled(name: String) {
+        val index = items.indexOfFirst { it.name == name }
+        if (index >= 0) {
+            items[index].status = FileStatus.CANCELLED
             notifyItemChanged(index)
         }
     }
@@ -142,6 +151,14 @@ class FileAdapter(private val callback: FileItemCallback) :
                     progressText.visibility = View.GONE
                     fileStatus.text = "失败"
                     fileStatus.setTextColor(0xFFE94560.toInt())
+                    btnOpen.visibility = View.GONE
+                }
+
+                FileStatus.CANCELLED -> {
+                    progressBar.visibility = View.GONE
+                    progressText.visibility = View.GONE
+                    fileStatus.text = "已取消"
+                    fileStatus.setTextColor(0xFFB0B0B0.toInt())
                     btnOpen.visibility = View.GONE
                 }
             }

@@ -5,7 +5,11 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD
+import java.io.BufferedInputStream
 import java.io.File
+import java.io.InputStream
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 class SimpleServer(
@@ -18,6 +22,7 @@ class SimpleServer(
         fun onUploadProgress(fileName: String, progress: Int, bytesReceived: Long, totalBytes: Long)
         fun onUploadComplete(fileName: String, file: File)
         fun onUploadError(fileName: String, error: String)
+        fun onUploadCancelled(fileName: String)
     }
 
     companion object {
@@ -39,27 +44,34 @@ class SimpleServer(
         Log.d(TAG, "serve: $method $uri")
 
         return when {
-            uri == "/api/upload" && method == Method.POST -> handleUpload(session)
+            uri == "/api/upload" && method == Method.POST -> {
+                val contentLength = session.headers["content-length"]?.toLongOrNull() ?: 0L
+                val fileName = session.parms["filename"]
+                    ?: "unknown_${System.currentTimeMillis()}"
+                val safeName = fileName.replace(Regex("[^a-zA-Z0-9._\\-一-鿿 ()]"), "_")
+
+                handler.post { listener.onUploadStart(safeName, contentLength) }
+
+                injectProgressTracker(session, safeName, contentLength)
+                handleUpload(session, safeName, contentLength)
+            }
+
             uri == "/api/progress" -> handleProgress(getQueryParam(session, "file"))
             uri == "/api/files" -> handleFileList()
             else -> handleStaticContent()
         }
     }
 
-    private fun handleUpload(session: IHTTPSession): Response {
-        val contentLength = session.headers["content-length"]?.toLongOrNull() ?: 0L
-
+    private fun handleUpload(
+        session: IHTTPSession,
+        safeName: String,
+        contentLength: Long
+    ): Response {
         return try {
             val tmpFiles = HashMap<String, String>()
             session.parseBody(tmpFiles)
 
-            val fileName = session.parms["filename"]
-                ?: session.parms["file"]
-                ?: "unknown_${System.currentTimeMillis()}"
-            val safeName = fileName.replace(Regex("[^a-zA-Z0-9._\\-一-鿿 ()]"), "_")
             Log.d(TAG, "upload: $safeName size=$contentLength tmpFiles=$tmpFiles")
-
-            handler.post { listener.onUploadStart(safeName, contentLength) }
 
             val tmpFile = File(tmpFiles["file"] ?: "")
             if (tmpFile.exists() && tmpFile.length() > 0) {
@@ -77,7 +89,12 @@ class SimpleServer(
                 )
             } else {
                 Log.e(TAG, "upload error: no temp file or empty")
-                handler.post { listener.onUploadError(safeName, "No file received") }
+                val progress = uploadProgress[safeName] ?: 0
+                if (progress > 0 && progress < 100) {
+                    handler.post { listener.onUploadCancelled(safeName) }
+                } else {
+                    handler.post { listener.onUploadError(safeName, "No file received") }
+                }
                 newFixedLengthResponse(
                     Response.Status.INTERNAL_ERROR,
                     "application/json",
@@ -87,11 +104,20 @@ class SimpleServer(
         } catch (e: Exception) {
             Log.e(TAG, "upload error", e)
             val errorMsg = e.message ?: "Unknown error"
+            
+            val progress = uploadProgress[safeName] ?: 0
+            if (e is java.io.IOException || (progress > 0 && progress < 100)) {
+                handler.post { listener.onUploadCancelled(safeName) }
+            } else {
+                handler.post { listener.onUploadError(safeName, errorMsg) }
+            }
             newFixedLengthResponse(
                 Response.Status.INTERNAL_ERROR,
                 "application/json",
                 """{"success":false,"error":"${errorMsg.replace("\"", "\\\"")}"}"""
             )
+        } finally {
+            uploadProgress.remove(safeName)
         }
     }
 
@@ -102,6 +128,61 @@ class SimpleServer(
             "application/json",
             """{"progress":$progress}"""
         )
+    }
+
+    private fun injectProgressTracker(session: IHTTPSession, fileName: String, totalBytes: Long) {
+        try {
+            val sessionClass = session.javaClass
+            val inputStreamField = sessionClass.getDeclaredField("inputStream")
+            inputStreamField.isAccessible = true
+
+            // Handle final modifier if necessary
+            try {
+                val modifiersField = Field::class.java.getDeclaredField("modifiers")
+                modifiersField.isAccessible = true
+                modifiersField.setInt(inputStreamField, inputStreamField.modifiers and Modifier.FINAL.inv())
+            } catch (e: Exception) {
+                // On some Android versions, this might fail, but let's try anyway
+            }
+
+            val originalStream = inputStreamField.get(session) as InputStream
+
+            var bytesRead: Long = 0
+            var lastUpdateTime: Long = 0
+
+            val trackedStream = object : BufferedInputStream(originalStream) {
+                override fun read(): Int {
+                    val b = super.read()
+                    if (b != -1) updateProgress(1)
+                    return b
+                }
+
+                override fun read(b: ByteArray, off: Int, len: Int): Int {
+                    val read = super.read(b, off, len)
+                    if (read != -1) updateProgress(read.toLong())
+                    return read
+                }
+
+                private fun updateProgress(delta: Long) {
+                    bytesRead += delta
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastUpdateTime > 100 || bytesRead >= totalBytes) {
+                        lastUpdateTime = currentTime
+                        val progress = if (totalBytes > 0) {
+                            (bytesRead * 100 / totalBytes).toInt().coerceIn(0, 100)
+                        } else 0
+                        uploadProgress[fileName] = progress
+                        handler.post {
+                            listener.onUploadProgress(fileName, progress, bytesRead, totalBytes)
+                        }
+                    }
+                }
+            }
+            inputStreamField.set(session, trackedStream)
+            Log.d(TAG, "Successfully injected progress tracker for $fileName")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to inject progress tracker", e)
+        }
     }
 
     private fun handleFileList(): Response {
