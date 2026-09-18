@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,6 +15,20 @@
     android:nextFocusLeft="@+id/btnDelete"
     android:nextFocusRight="@+id/btnOpen">
 
+    <!-- 序号徽标：圆形背景 + 展示列表中的序号（从 1 开始） -->
+    <TextView
+        android:id="@+id/indexBadge"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="12dp"
+        android:gravity="center"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/badge_index_background"
+        android:focusable="false"
+        tools:text="1" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -27,8 +42,10 @@
             android:layout_height="wrap_content"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
-            android:maxLines="1"
-            android:ellipsize="middle" />
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:focusable="false" />
 
         <TextView
             android:id="@+id/fileSize"
@@ -71,13 +88,13 @@
     <TextView
         android:id="@+id/btnOpen"
         android:layout_width="wrap_content"
-        android:layout_height="44dp"
+        android:layout_height="32dp"
         android:layout_marginStart="8dp"
         android:gravity="center"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
         android:text="打开"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"
         android:background="@drawable/btn_open_background"
@@ -89,13 +106,13 @@
     <TextView
         android:id="@+id/btnDelete"
         android:layout_width="wrap_content"
-        android:layout_height="44dp"
+        android:layout_height="32dp"
         android:layout_marginStart="8dp"
         android:gravity="center"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
         android:text="删除"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"
         android:background="@drawable/btn_delete_background"

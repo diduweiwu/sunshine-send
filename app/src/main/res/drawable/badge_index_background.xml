@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 文件列表序号徽标的圆形背景：半透明淡蓝色 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#334FC3F9" />
+    <stroke
+        android:width="1dp"
+        android:color="#664FC3F9" />
+</shape>
